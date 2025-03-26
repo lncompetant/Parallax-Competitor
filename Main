@@ -1,0 +1,139 @@
+
+#include <Bluepad32.h>
+
+//motor pins
+const int leftPinA = 13;
+const int leftPinB = 12;
+const int leftMotorSpeedPin = 13;
+const int rightPinA = 4;
+const int rightPinB = 2;
+const int RightMotorSpeedPin = 15;
+
+
+const float sensitivityPercentage = 0.50;
+
+
+
+const int driftOffset = 30;  //amount to offset joystick drift by
+bool controllerConnected = false;
+
+
+
+// Controller pointer
+ControllerPtr myControllers[BP32_MAX_GAMEPADS];
+
+// Function prototypes
+void processJoysticks(ControllerPtr ctl);
+
+
+
+void setup() {
+  Serial.begin(115200);
+
+  pinMode(leftPinA, OUTPUT);
+  pinMode(leftPinB, OUTPUT);
+  pinMode(rightPinB, OUTPUT);
+  pinMode(rightPinA, OUTPUT);
+  pinMode(leftMotorSpeedPin,OUTPUT);
+  pinMode(rightMotorSpeedPin, OUTPUT);
+
+
+
+
+  escLeft.attach(leftPin, 1000, 2000);    // Attach the ESC for the left wheel
+  escRight.attach(rightPin, 1000, 2000);  // Attach the ESC for the right wheel
+
+  // Initialize Bluepad32
+  BP32.setup(&onConnectedController, &onDisconnectedController);
+}
+
+void loop() {
+  // Update controller data
+  bool dataUpdated = BP32.update();
+
+  // Process controller input
+  if (dataUpdated) {
+    for (auto ctl : myControllers) {
+      if (ctl && ctl->isConnected()) {
+        if (!escArmed) {
+          armESC();
+          escArmed = true;
+        }
+        processJoysticks(ctl);
+      }
+    }
+  } else {
+    //onDisconnectedController();
+  }
+
+  delay(20);
+}
+
+void onConnectedController(ControllerPtr ctl) {
+  controllerConnected = true;
+  for (int i = 0; i < BP32_MAX_GAMEPADS; i++) {
+    if (myControllers[i] == nullptr) {
+      myControllers[i] = ctl;
+      break;
+    }
+  }
+  Serial.println("Controller connected");
+}
+
+void onDisconnectedController(ControllerPtr ctl) {
+  controllerConnected = false;
+  for (int i = 0; i < BP32_MAX_GAMEPADS; i++) {
+    if (myControllers[i] == ctl) {
+      myControllers[i] = nullptr;
+      break;
+    }
+  }
+  Serial.println("Controller disconnected");
+}
+void processJoysticks(ControllerPtr ctl) {
+    // Control the wheels using the joystick
+    int leftyAxis = ctl->axisY();    // Assuming this is the Y-axis for forward/backward
+    int rightxAxis = ctl->axisRX();  // Assuming this is the X-axis for left/right
+    int rightyAxis = ctl->axisRY();
+  
+    // Processed axis values mapped to motor control range
+    int processedRight = rightyAxis;  // Use right joystick Y-axis
+    int processedLeft = leftyAxis;    // Use left joystick Y-axis
+  
+    int mappedRight = map(processedRight, -512, 512, -255, 256);
+    int mappedLeft = map(processedLeft, -512, 512, -255, 256);
+
+    // Right motor control
+    if (abs(mappedRight) > driftOffset) {
+        if (mappedRight > 0) {
+            digitalWrite(rightPinA, HIGH);
+            digitalWrite(rightPinB, LOW);
+            analogWrite(RightMotorSpeedPin, abs(mappedRight));
+        } else {
+            digitalWrite(rightPinA, LOW);
+            digitalWrite(rightPinB, HIGH);
+            analogWrite(RightMotorSpeedPin, abs(mappedRight));
+        }
+    } else {
+        digitalWrite(rightPinA, LOW);
+        digitalWrite(rightPinB, LOW);
+        analogWrite(RightMotorSpeedPin, 0);
+    }
+
+    // Left motor control
+    if (abs(mappedLeft) > driftOffset) {
+        if (mappedLeft > 0) {
+            digitalWrite(leftPinA, HIGH);
+            digitalWrite(leftPinB, LOW);
+            analogWrite(leftMotorSpeedPin, abs(mappedLeft));
+        } else {
+            digitalWrite(leftPinA, LOW);
+            digitalWrite(leftPinB, HIGH);
+            analogWrite(leftMotorSpeedPin, abs(mappedLeft));
+        }
+    } else {
+        digitalWrite(leftPinA, LOW);
+        digitalWrite(leftPinB, LOW);
+        analogWrite(leftMotorSpeedPin, 0);
+    }
+}
