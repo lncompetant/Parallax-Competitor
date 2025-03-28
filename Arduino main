@@ -1,0 +1,54 @@
+
+    int Switch_1A = 16;//Right Forward
+    int Switch_2A = 15; //Right backward
+    int Switch_3B = 13;//Left Backward
+    int Switch_4B = 14;//Left Forward
+
+        void Stop(){
+        digitalWrite(Switch_1A,LOW);
+        digitalWrite(Switch_2A,LOW);
+        digitalWrite(Switch_3B,LOW);
+        digitalWrite(Switch_4B,LOW);
+    }
+
+    void Forward(){
+      digitalWrite(Switch_2A,HIGH);
+      digitalWrite(Switch_4B,HIGH);
+      digitalWrite(Switch_1A,LOW);
+      digitalWrite(Switch_3B,LOW);
+      }  
+      void Backward(){
+      digitalWrite(Switch_3B,HIGH);
+      digitalWrite(Switch_1A,HIGH);
+      digitalWrite(Switch_2A,LOW);
+      digitalWrite(Switch_4B,LOW);
+      }
+      void Clockwise(){
+      digitalWrite(Switch_1A,HIGH);
+      digitalWrite(Switch_4B,HIGH);
+      digitalWrite(Switch_2A,LOW);
+      digitalWrite(Switch_3B,LOW);
+      }
+      void Counter_Clockwise(){
+      digitalWrite(Switch_2A,HIGH);
+      digitalWrite(Switch_3B,HIGH);
+      digitalWrite(Switch_1A,LOW);
+      digitalWrite(Switch_4B,LOW);
+      }
+
+void setup() {
+  Serial.setBaudRate(11520);
+}
+
+void loop() {
+  Serial.println("I work now");
+  Counter_Clockwise();
+  delay(2000);
+  Clockwise();
+  delay(2000);
+  Forward();
+  delay(2000);
+  Backward();
+  delay(2000);
+
+}
