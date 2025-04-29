@@ -4,10 +4,8 @@
 //motor pins
 const int leftPinA = 13;
 const int leftPinB = 12;
-const int leftMotorSpeedPin = 13;
 const int rightPinA = 4;
 const int rightPinB = 2;
-const int RightMotorSpeedPin = 15;
 
 
 const float sensitivityPercentage = 0.50;
@@ -34,14 +32,7 @@ void setup() {
   pinMode(leftPinB, OUTPUT);
   pinMode(rightPinB, OUTPUT);
   pinMode(rightPinA, OUTPUT);
-  pinMode(leftMotorSpeedPin,OUTPUT);
-  pinMode(rightMotorSpeedPin, OUTPUT);
 
-
-
-
-  escLeft.attach(leftPin, 1000, 2000);    // Attach the ESC for the left wheel
-  escRight.attach(rightPin, 1000, 2000);  // Attach the ESC for the right wheel
 
   // Initialize Bluepad32
   BP32.setup(&onConnectedController, &onDisconnectedController);
@@ -55,10 +46,6 @@ void loop() {
   if (dataUpdated) {
     for (auto ctl : myControllers) {
       if (ctl && ctl->isConnected()) {
-        if (!escArmed) {
-          armESC();
-          escArmed = true;
-        }
         processJoysticks(ctl);
       }
     }
@@ -108,16 +95,13 @@ void processJoysticks(ControllerPtr ctl) {
         if (mappedRight > 0) {
             digitalWrite(rightPinA, HIGH);
             digitalWrite(rightPinB, LOW);
-            analogWrite(RightMotorSpeedPin, abs(mappedRight));
         } else {
             digitalWrite(rightPinA, LOW);
             digitalWrite(rightPinB, HIGH);
-            analogWrite(RightMotorSpeedPin, abs(mappedRight));
         }
     } else {
         digitalWrite(rightPinA, LOW);
         digitalWrite(rightPinB, LOW);
-        analogWrite(RightMotorSpeedPin, 0);
     }
 
     // Left motor control
@@ -125,15 +109,12 @@ void processJoysticks(ControllerPtr ctl) {
         if (mappedLeft > 0) {
             digitalWrite(leftPinA, HIGH);
             digitalWrite(leftPinB, LOW);
-            analogWrite(leftMotorSpeedPin, abs(mappedLeft));
         } else {
             digitalWrite(leftPinA, LOW);
             digitalWrite(leftPinB, HIGH);
-            analogWrite(leftMotorSpeedPin, abs(mappedLeft));
         }
     } else {
         digitalWrite(leftPinA, LOW);
         digitalWrite(leftPinB, LOW);
-        analogWrite(leftMotorSpeedPin, 0);
     }
 }
